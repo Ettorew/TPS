@@ -69,14 +69,16 @@ public class Principal{
         String linha = new String();
         int i = 0;
         Show[] shows = new Show[1368];
+        sc.nextLine();
         
         while(sc.hasNext()){
             linha = sc.nextLine();
             shows[i] = Show.ler(linha);
+            i++;
         }
 
-        for(; i>=0; i--){
-            shows[i].imprimir();
+        for(int j=0; j<i; j++){
+            shows[j].imprimir();
         }
 
         sc.close();
