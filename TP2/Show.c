@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define MAX_SHOWS 1368
 #define TAM_LINHA 1000
 
@@ -30,8 +31,23 @@ int getTam(char* linha){
     return tam;
 }
 
+
+void trim(char *str) {
+    int start = 0;
+    while (str[start] == ' ') start++;
+
+    int end = strlen(str) - 1;
+    while (end > start && str[end] == ' ') end--;
+
+    int i, j = 0;
+    for (i = start; i <= end; i++) {
+        str[j++] = str[i];
+    }
+    str[j] = '\0';
+}
+
 char *extraiCampo(char *next, int *extraido){
-    char *campo = malloc(100);
+    char *campo = malloc(1000);
     int i=0, j=0, verifica = 1, aspas = 0, caracteres = 0;
 
     while(verifica && next[i] != '\0' ){
@@ -41,16 +57,18 @@ char *extraiCampo(char *next, int *extraido){
             }else{
                 if(next[i] == '"'){
                     aspas = !aspas;
-                }
+                }else{
                 campo[j++] = next[i];
                 caracteres++;
+                }
             }
         }else{
             if(next[i] == '"'){
                 aspas = !aspas;
-            }
+            }else{
             campo[j++] = next[i];
             caracteres++;
+            }
         }
         i++;
     }
@@ -69,39 +87,50 @@ char **separaString(char *linha, int *tam) {
     int i = 0, j = 0, k = 0;
     *tam = 1;
 
-    for(i = 0; linha[i] != '\0'; i++) {
-        if(linha[i] == ',') {
+    for (i = 0; linha[i] != '\0'; i++) {
+        if (linha[i] == ',') {
             (*tam)++;
         }
     }
 
     char **s = (char **)malloc(sizeof(char*) * (*tam));
-
-    for(i = 0; i < *tam; i++) {
+    for (i = 0; i < *tam; i++) {
         s[i] = NULL;
     }
 
-    i = 0;
-    j = 0;
-    k = 0;
-    int virgula = 0;
+    i = j = k = 0;
+    s[k] = (char *)malloc(sizeof(char) * (strlen(linha) + 1));
 
-    s[k] = (char *)malloc(sizeof(char) * (getTam(linha) + 1));
-    
-    while(linha[i] != '\0') {
-        if(linha[i] == ',' && !virgula) {
+    while (linha[i] != '\0') {
+        if (linha[i] == ',') {
             s[k][j] = '\0';
+            trim(s[k]);
             k++;
             j = 0;
-
-            s[k] = (char *)malloc(sizeof(char) * (getTam(linha) + 1));
-        } else if(linha[i] != '"'){
+            s[k] = (char *)malloc(sizeof(char) * (strlen(linha) + 1));
+        } else if (linha[i] != '"') {
             s[k][j++] = linha[i];
         }
         i++;
     }
-    
+
     s[k][j] = '\0';
+    trim(s[k]);
+
+    for (int m = 0; m < *tam - 1; m++) {
+        int menor = m;
+        for (int n = m + 1; n < *tam; n++) {
+            if (strcmp(s[n], s[menor]) < 0) {
+                menor = n;
+            }
+        }
+        if (menor != m) {
+            char *temp = s[m];
+            s[m] = s[menor];
+            s[menor] = temp;
+        }
+    }
+
     return s;
 }
 
@@ -146,16 +175,16 @@ void imprimiArray(char **array, int tam){
 }
 
 void imprimir(Show *show){
-    printf("[=> %s ## %s ## %s ## %s ## ", show->show_id, show->type, show->title, show->director);
+    printf("=> %s ## %s ## %s ## %s ## ", show->show_id, show->title, show->type, show->director);
     imprimiArray(show->elenco, show->tam_elenco);
     printf(" ## %s ## %s ## %s ## %s ## %s ## ", show->country, show->date_added, 
         show->release_year, show->rating, show->duration);
     imprimiArray(show->listados, show->tam_listados);
-    printf(" ## %s\n", show->description);
+    printf(" ## \n");
 }
 
 int main() {
-    FILE *file = fopen("disneyplus.csv", "r");
+    FILE *file = fopen("/tmp/disneyplus.csv", "r");
     if (file == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return 1;
@@ -166,14 +195,15 @@ int main() {
 
     Show *shows[MAX_SHOWS];
 
+    // Skip header line
     fgets(linha, TAM_LINHA, file);
 
+    // Read all shows from CSV
     while (fgets(linha, TAM_LINHA, file) != NULL && i < MAX_SHOWS) {
         int j = 0;
         while (linha[j] != '\0') {
             if (linha[j] == '\n' || linha[j] == '\r') {
                 linha[j] = '\0';
-                break;
             }
             j++;
         }
@@ -181,11 +211,51 @@ int main() {
         shows[i] = ler(linha);
         i++;
     }
+    fclose(file);
 
-    for (int j = 0; j < i; j++) {
-        imprimir(shows[j]);
+    char entrada[20];
+    scanf("%s", entrada);
+    while(strcmp(entrada, "FIM") != 0) {
+        for(int j = 0; j < i; j++) {
+            if(strcmp(entrada, shows[j]->show_id) == 0) {
+                imprimir(shows[j]);
+                j = i;  
+            }
+        }
+        scanf("%s", entrada);
     }
 
-    fclose(file);
+    // Free allocated memory
+    for(int j = 0; j < i; j++) {
+        // Free the elenco array elements
+        for(int k = 0; k < shows[j]->tam_elenco; k++) {
+            free(shows[j]->elenco[k]);
+        }
+        free(shows[j]->elenco);
+
+        // Free the listados array elements
+        for(int k = 0; k < shows[j]->tam_listados; k++) {
+            free(shows[j]->listados[k]);
+        }
+        free(shows[j]->listados);
+
+        // Free the string fields
+        free(shows[j]->show_id);
+        free(shows[j]->type);
+        free(shows[j]->title);
+        free(shows[j]->director);
+        free(shows[j]->cast);
+        free(shows[j]->country);
+        free(shows[j]->date_added);
+        free(shows[j]->release_year);
+        free(shows[j]->rating);
+        free(shows[j]->duration);
+        free(shows[j]->listed_in);
+        free(shows[j]->description);
+
+        // Free the show struct itself
+        free(shows[j]);
+    }
+
     return 0;
 }

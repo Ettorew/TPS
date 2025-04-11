@@ -114,17 +114,17 @@ class Show {
     }
 
     public void imprimir() {
-        System.out.printf("[=> %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s\r\n",
-                this.show_id, this.type, this.title, this.director, Arrays.toString(this.elenco), this.country,
+        System.out.printf("=> %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## %s ## \r\n",
+                this.show_id, this.title, this.type, this.director, Arrays.toString(this.elenco), this.country,
                 this.date_added,
-                this.release_year, this.rating, this.duration, Arrays.toString(this.listados), this.description);
+                this.release_year, this.rating, this.duration, Arrays.toString(this.listados));
     }
 
 }
 
 public class Principal {
     public static void main(String args[]) throws FileNotFoundException {
-        File file = new File("disneyplus.csv");
+        File file = new File("/tmp/disneyplus.csv");
         Scanner sc = new Scanner(file);
         String linha = new String();
         int i = 0;
@@ -137,10 +137,15 @@ public class Principal {
             i++;
         }
 
-        for (int j = 0; j < i; j++) {
-            shows[j].imprimir();
-        }
-
         sc.close();
+
+        Scanner scanner = new Scanner(System.in);
+        int pos;
+        String s = scanner.nextLine();
+        while(!s.equals("FIM")){
+            pos = Integer.parseInt(s.substring(1)); 
+            shows[pos-1].imprimir();
+            s = scanner.nextLine();
+        }
     }
 }
