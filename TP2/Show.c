@@ -198,7 +198,6 @@ int main() {
     // Skip header line
     fgets(linha, TAM_LINHA, file);
 
-    // Read all shows from CSV
     while (fgets(linha, TAM_LINHA, file) != NULL && i < MAX_SHOWS) {
         int j = 0;
         while (linha[j] != '\0') {
