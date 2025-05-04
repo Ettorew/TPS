@@ -184,7 +184,7 @@ void imprimir(Show *show){
 }
 
 int main() {
-    FILE *file = fopen("/tmp/disneyplus.csv", "r");
+    FILE *file = fopen("tmp/disneyplus.csv", "r");
     if (file == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return 1;

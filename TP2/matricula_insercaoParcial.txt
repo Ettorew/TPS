@@ -1,4 +1,4 @@
 matricula: 1491845
-comparacoes: 4018
-movimentacoes: 6639
+comparacoes: 21631
+movimentacoes: 21633
 tempo execucao: 0.000000

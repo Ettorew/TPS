@@ -1,0 +1,15 @@
+matricula: 1491845
+comparacoes: 44850
+movimentacoes: 1992
+tempo execucao: 0.004000
+O Radix Sort é um algoritmo de ordenação que, em vez de comparar elementos diretamente,
+ordena os dados com base nas suas partes, como os dígitos de números ou caracteres de strings.
+Ele começa ordenando pelos dígitos menos significativos e vai avançando até o dígito mais significativo.
+
+A principal vantagem do Radix Sort é que ele não precisa fazer comparações diretas entre os elementos,
+o que pode torná-lo mais eficiente em certos casos. Ele usa um algoritmo de ordenação estável, como o
+Counting Sort, para ordenar os elementos em cada 'passagem' (por dígito ou caractere).
+
+O Radix Sort tem complexidade O(d * n), onde n é o número de elementos e d é o número de dígitos ou
+caracteres. Ele é eficiente quando d é pequeno, mas pode ser mais lento que algoritmos como QuickSort e
+MergeSort quando d é grande.

@@ -47,7 +47,7 @@ class Show {
 
     public LocalDate transformaData(String texto) {
         LocalDate data;
-        if (texto == "NaN") {
+        if (texto.equals("NaN")) {
             data = null;
         } else {
             String s[] = texto.replace(",", "").split(" ");
