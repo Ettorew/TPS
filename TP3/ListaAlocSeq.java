@@ -4,11 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
-
 
 class Show {
     private String show_id, type, title, director, cast,
@@ -21,6 +17,18 @@ class Show {
 
     String getShowId(){
         return show_id;
+    }
+
+    String getTitle(){
+        return title;
+    }
+
+    String getDirector(){
+        return director;
+    }
+
+    String getReleaseYear(){
+        return release_year;
     }
 
     private static String[] separaStrings(String linha) {
@@ -39,35 +47,6 @@ class Show {
         }
 
         return s;
-    }
-
-    public LocalDate transformaData(String texto) {
-        LocalDate data;
-        if (texto == "Nan") {
-            data = null;
-        } else {
-            String s[] = texto.replace(",", "").split(" ");
-            Map<String, Integer> meses = new HashMap<>();
-
-            meses.put("January", 1);
-            meses.put("February", 2);
-            meses.put("March", 3);
-            meses.put("April", 4);
-            meses.put("May", 5);
-            meses.put("June", 6);
-            meses.put("July", 7);
-            meses.put("August", 8);
-            meses.put("September", 9);
-            meses.put("October", 10);
-            meses.put("November", 11);
-            meses.put("December", 12);
-            int mes = meses.get(s[0]);
-            int dia = Integer.parseInt(s[1]);
-            int ano = Integer.parseInt(s[2]);
-            data = LocalDate.of(ano, mes, dia);
-        }
-
-        return data;
     }
 
     public static Show ler(String linha) {
@@ -128,41 +107,82 @@ class Show {
                 this.release_year, this.rating, this.duration, Arrays.toString(this.listados));
     }
 
-    public static int[] ordenaInsercao(Show[] arr) {
-        int[] comp_mov = new int[2];
-        comp_mov[0] = 0; // comparações
-        comp_mov[1] = 0; // movimentações
-    
-        for (int i = 1; i < arr.length; i++) {
-            Show tmp = arr[i];
-            int j = i - 1;
-    
-            while (j >= 0) {
-                comp_mov[0]++;
-                int cmp = tmp.type.compareTo(arr[j].type);
-    
-                if (cmp < 0 || (cmp == 0 && tmp.title.compareTo(arr[j].title) < 0)) {
-                    comp_mov[0]++;
-                    arr[j + 1] = arr[j];
-                    comp_mov[1]++;
-                    j--;
-                } else {
-                    break;
-                }
-            }
-    
-            arr[j + 1] = tmp;
-            comp_mov[1]++;
-        }
-    
-        return comp_mov;
-    }
-    
-
 }
 
-public class Insercao {
+class ListaSequencial {
+    private Show[] array;
+    private int n;
+
+    public ListaSequencial(int tam) {
+        this.array = new Show[tam];
+        this.n = 0;
+    }
+
+    public void inserir(int pos, Show show) {
+        if (n >= array.length) {
+            System.out.println("Lista cheia!");
+            return;
+        }
+        if (pos < 0 || pos > n) {
+            System.out.println("Posição inválida!");
+            return;
+        }
+        for (int i = n; i > pos; i--) {
+            array[i] = array[i - 1];
+        }
+        array[pos] = show;
+        n++;
+    }
+
+    public void inserirInicio(Show show){
+        inserir(0, show);
+    }
+
+    public void inserirFim(Show show){
+        inserir(n, show);
+    }
+
+    public Show remover(int pos) {
+        if (n == 0) {
+            System.out.println("Lista vazia!");
+            return null;
+        }
+        if (pos < 0 || pos >= n) {
+            System.out.println("Posição inválida!");
+            return null;
+        }
+        Show removido = array[pos];
+        for (int i = pos; i < n - 1; i++) {
+            array[i] = array[i + 1];
+        }
+        array[n - 1] = null;
+        n--;
+        return removido;
+    }
+
+    public Show removerInicio() {
+        return remover(0);
+    }
+
+    public Show removerFim() {
+        return remover(n - 1);
+    }
+
+    public void imprimir() {
+        for (int i = 0; i < n; i++) {
+            array[i].imprimir();
+        }
+    }
+
+    public int getN() {
+        return n;
+    }
+}
+
+public class ListaAlocSeq {
     public static void main(String args[]) throws FileNotFoundException, IOException {
+        long inicio = System.nanoTime();
+        int comparacoes = 0;
         File file = new File("/tmp/disneyplus.csv");
         Scanner sc = new Scanner(file);
         String linha = new String();
@@ -178,38 +198,52 @@ public class Insercao {
 
         sc.close();
 
-        Show[] meusShows = new Show[300];
-        int k = 0;
+        ListaSequencial lista = new ListaSequencial(1368);
         Scanner scanner = new Scanner(System.in);
         String s = scanner.nextLine();
 
         while(!s.equals("FIM")){
-            for(int j=0; j<1368; j++){
-                if(s.equals(shows[j].getShowId())){
-                    meusShows[k] = shows[j];
-                    k++;
-                    j = 1368;
-                }
-            }
+            int pos = Integer.parseInt(s.substring(1)); 
+            lista.inserirFim(shows[pos-1]);
             s = scanner.nextLine();
         }
 
-        long inicio = System.nanoTime();
-        int[] comp_mov = Show.ordenaInsercao(meusShows);
-        long fim = System.nanoTime();
-        int movimentacoes = comp_mov[1];
-        int comparacoes = comp_mov[0];
+        int tamComandos = scanner.nextInt();
+        String removidos[] = new String[tamComandos];
+        int k = 0;
 
-        for(int j=0; j<meusShows.length; j++){
-            meusShows[j].imprimir();
+        for(int j = 0; j < tamComandos; j++){
+            String comando = scanner.next();
+            if(comando.equals("I*")){
+                int posicao = scanner.nextInt();
+                String id = scanner.next();
+                int pos = Integer.parseInt(id.substring(1)); 
+                lista.inserir(posicao, shows[pos-1]);
+            }else if(comando.equals("II")){
+                String id = scanner.next();
+                int pos = Integer.parseInt(id.substring(1)); 
+                lista.inserirInicio(shows[pos-1]);
+            }else if(comando.equals("IF")){
+                String id = scanner.next();
+                int pos = Integer.parseInt(id.substring(1)); 
+                lista.inserirFim(shows[pos-1]);
+            }else if(comando.equals("R*")){
+                int posicao = scanner.nextInt();
+                removidos[k] = lista.remover(posicao).getTitle();
+                k++;
+            }else if(comando.equals("RI")){
+                removidos[k] = lista.removerInicio().getTitle();
+                k++;
+            }else if(comando.equals("RF")){
+                removidos[k] = lista.removerFim().getTitle();
+                k++;
+            }
         }
 
-        long tempoExecucao = fim - inicio;
-        FileWriter fw = new FileWriter("matricula_insercao.txt");
-        PrintWriter pw = new PrintWriter(fw);
-        pw.printf("matricula: 1491845\ncomparacoes: %d\nmovimentacoes: %d\ntempo execucao: %d\n", comparacoes, movimentacoes, tempoExecucao); // substitua 123456 pela sua matrícula
-        pw.close();
-        scanner.close();
+        for(int j = 0; j < k; j++){
+            System.out.println("(R) " + removidos[j]);
+        }
+
+        lista.imprimir();
     }
 }
-
