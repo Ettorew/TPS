@@ -1,0 +1,3 @@
+matricula: 832722
+tempo execucao: 174889800
+comparacoes: 67786
